@@ -1,4 +1,4 @@
-        /* Reset & Base */
+ /* Reset & Base */
         * {
           margin: 0;
           padding: 0;
@@ -141,11 +141,45 @@
           flex: 1;
           position: relative;
           z-index: 5;
+          overflow-y: auto;
+        }
+
+        /* Drag Handle */
+        .drag-handle {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: grab;
+          touch-action: none;
+          z-index: 10;
+        }
+
+        .drag-handle:active {
+          cursor: grabbing;
+        }
+
+        .drag-indicator {
+          width: 36px;
+          height: 4px;
+          background: #d1d5db;
+          border-radius: 2px;
+          transition: background 0.2s ease;
+        }
+
+        .drag-handle:hover .drag-indicator,
+        .drag-handle:active .drag-indicator {
+          background: #9ca3af;
         }
 
         /* Trip Planning */
         .trip-section {
           margin-bottom: 32px;
+          margin-top: 16px;
         }
 
         .route-display {
@@ -421,13 +455,20 @@
           }
 
           .card-container {
-            position: absolute;
+            position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            max-height: 60vh;
-            overflow-y: auto;
-            padding-bottom: 80px;
+            height: var(--card-height, 60vh);
+            max-height: none;
+            margin-top: 0;
+            border-radius: 24px 24px 0 0;
+            padding: 8px 20px 80px 20px;
+            transition: height 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          }
+
+          .drag-handle {
+            display: flex;
           }
 
           .bottom-nav {
@@ -442,9 +483,14 @@
           
           .card-container {
             position: static;
+            height: auto;
             max-height: none;
             overflow-y: visible;
-            padding-bottom: 24px;
+            padding: 24px 20px;
+            transition: none;
+          }
+
+          .drag-handle {
+            display: none;
           }
         }
-

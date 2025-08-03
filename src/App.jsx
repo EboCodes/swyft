@@ -1,9 +1,90 @@
-import React, { useState } from 'react';
-import "./App.css"; 
+import React, { useState, useRef, useEffect } from 'react';
+import "./App.css";
 
 export default function App() {
   const [showPromo, setShowPromo] = useState(true);
   const [searchValue, setSearchValue] = useState('');
+  const [cardHeight, setCardHeight] = useState(60); // Percentage of viewport height
+  const [isDragging, setIsDragging] = useState(false);
+  const cardRef = useRef(null);
+  const startY = useRef(0);
+  const startHeight = useRef(0);
+
+  const handleTouchStart = (e) => {
+    setIsDragging(true);
+    startY.current = e.touches[0].clientY;
+    startHeight.current = cardHeight;
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isDragging) return;
+    
+    const currentY = e.touches[0].clientY;
+    const deltaY = startY.current - currentY;
+    const viewportHeight = window.innerHeight;
+    const deltaPercent = (deltaY / viewportHeight) * 100;
+    
+    let newHeight = startHeight.current + deltaPercent;
+    newHeight = Math.max(25, Math.min(85, newHeight)); // Limit between 25% and 85%
+    
+    setCardHeight(newHeight);
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    
+    // Snap to common positions
+    if (cardHeight < 35) {
+      setCardHeight(25); // Minimized
+    } else if (cardHeight < 55) {
+      setCardHeight(45); // Half
+    } else if (cardHeight < 75) {
+      setCardHeight(60); // Default
+    } else {
+      setCardHeight(80); // Expanded
+    }
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isDragging) return;
+      
+      const currentY = e.clientY;
+      const deltaY = startY.current - currentY;
+      const viewportHeight = window.innerHeight;
+      const deltaPercent = (deltaY / viewportHeight) * 100;
+      
+      let newHeight = startHeight.current + deltaPercent;
+      newHeight = Math.max(25, Math.min(85, newHeight));
+      
+      setCardHeight(newHeight);
+    };
+
+    const handleMouseUp = () => {
+      if (isDragging) {
+        setIsDragging(false);
+        
+        // Snap to positions
+        if (cardHeight < 35) {
+          setCardHeight(25);
+        } else if (cardHeight < 55) {
+          setCardHeight(45);
+        } else if (cardHeight < 75) {
+          setCardHeight(60);
+        } else {
+          setCardHeight(80);
+        }
+      }
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, cardHeight]);
 
   return (
     <div className="app">
@@ -58,7 +139,27 @@ export default function App() {
       )}
 
       {/* Main Card Container */}
-      <div className="card-container">
+      <div 
+        className="card-container"
+        ref={cardRef}
+        style={{
+          '--card-height': `${cardHeight}vh`
+        }}
+      >
+        {/* Drag Handle (Mobile only) */}
+        <div 
+          className="drag-handle mobile-only"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onMouseDown={(e) => {
+            setIsDragging(true);
+            startY.current = e.clientY;
+            startHeight.current = cardHeight;
+          }}
+        >
+          <div className="drag-indicator"></div>
+        </div>
         {/* Promo (Mobile only) */}
         {showPromo && (
           <div className="promo-banner mobile-only">
